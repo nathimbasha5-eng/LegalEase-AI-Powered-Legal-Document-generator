@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LegalEase: AI Legal Document Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-blue-700">LegalEase</h1>
+            <p class="text-gray-600">AI-Powered Legal Document Generator</p>
+        </header>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Input Form -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Document Parameters</h2>
+                <form id="docForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Document Type</label>
+                        <input type="text" id="docType" required placeholder="e.g., Non-Disclosure Agreement" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Parties Involved</label>
+                        <input type="text" id="parties" required placeholder="e.g., Company A and John Doe" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Jurisdiction</label>
+                        <input type="text" id="jurisdiction" required placeholder="e.g., California, USA" class="mt-1 w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Key Terms & Conditions</label>
+                        <textarea id="terms" rows="4" required placeholder="e.g., 2-year duration, $5000 penalty for breach..." class="mt-1 w-full p-2 border border-gray-300 rounded-md"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 font-medium">Generate Document</button>
+                </form>
+            </div>
+
+            <!-- Output Viewer -->
+            <div class="bg-white p-6 rounded-lg shadow-md flex flex-col">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Generated Draft</h2>
+                <div id="output" class="flex-1 bg-gray-50 border border-gray-200 p-4 rounded-md overflow-y-auto whitespace-pre-wrap text-sm text-gray-700 min-h-[300px]">Your generated document will appear here...</div>
+                <button id="copyBtn" class="mt-4 bg-gray-200 text-gray-800 p-2 rounded-md hover:bg-gray-300 font-medium text-sm">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('docForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const outputDiv = document.getElementById('output');
+            outputDiv.textContent = "Generating legal document with AI...";
+
+            const payload = {
+                doc_type: document.getElementById('docType').value,
+                parties: document.getElementById('parties').value,
+                jurisdiction: document.getElementById('jurisdiction').value,
+                terms: document.getElementById('terms').value
+            };
+
+            try {
+                const res = await fetch('http://localhost:8000/api/generate-document', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    outputDiv.textContent = data.document;
+                } else {
+                    outputDiv.textContent = "Error generating document.";
+                }
+            } catch (err) {
+                outputDiv.textContent = "Connection error: Make sure the FastAPI backend is running.";
+            }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const text = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(text);
+            alert('Copied to clipboard!');
+        });
+    </script>
+</body>
+</html>
